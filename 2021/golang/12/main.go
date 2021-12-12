@@ -68,7 +68,7 @@ func main() {
 }
 
 func one() {
-	prepareInput("example_input.txt")
+	prepareInput("input.txt")
 	paths, success := Visit(Caves["start"], map[string]bool{}, true)
 	if !success {
 		panic("Mission failed! We'll get 'em next time")
