@@ -7,8 +7,10 @@ import (
 )
 
 var (
-	PolymerTemplate string
-	Rules           map[string]byte
+	PolymerTemplate map[string]int
+	Rules           map[string]string
+	StartingElement byte
+	EndingElement   byte
 )
 
 func main() {
@@ -17,28 +19,35 @@ func main() {
 }
 
 func prepareInput(file string) {
-	Rules = map[string]byte{}
+	PolymerTemplate = map[string]int{}
+	Rules = map[string]string{}
 	input, _ := ioutil.ReadFile(file)
 	inputStrings := strings.Split(strings.TrimSpace(string(input)), "\n\n")
-	PolymerTemplate = inputStrings[0]
+	StartingElement = inputStrings[0][0]
+	EndingElement = inputStrings[0][len(inputStrings[0])-1]
+	for i := 1; i < len(inputStrings[0]); i++ {
+		PolymerTemplate[inputStrings[0][i-1:i+1]] += 1
+	}
 	for _, insertionRule := range strings.Split(inputStrings[1], "\n") {
 		requirement := strings.Split(insertionRule, " -> ")[0]
-		output := strings.Split(insertionRule, " -> ")[1][0]
+		output := strings.Split(insertionRule, " -> ")[1]
 		Rules[requirement] = output
 	}
 }
 
 func one() {
-	prepareInput("input.txt")
+	prepareInput("example_input.txt")
 	step(10)
 	mostCommonElement := 0
-	leastCommonElement := 1000000
+	leastCommonElement := 0
+	leastCommonElementSet := false
 	for _, amount := range countElements() {
 		if amount > mostCommonElement {
 			mostCommonElement = amount
 		}
-		if amount < leastCommonElement {
+		if amount < leastCommonElement || !leastCommonElementSet {
 			leastCommonElement = amount
+			leastCommonElementSet = true
 		}
 	}
 	fmt.Printf("One %d\n", mostCommonElement-leastCommonElement)
@@ -46,39 +55,46 @@ func one() {
 
 func step(amount int) {
 	for step := 0; step < amount; step++ {
-		newPolymer := []byte{}
-		for i := 1; i < len(PolymerTemplate); i++ {
-			newPolymer = append(newPolymer, PolymerTemplate[i-1])
-			newPolymer = append(newPolymer, Rules[PolymerTemplate[i-1:i+1]])
+		newPolymer := map[string]int{}
+		for poly, amount := range PolymerTemplate {
+			addition := Rules[poly]
+			newPolyOne := string(poly[0]) + addition
+			newPolyTwo := addition + string(poly[1])
+			newPolymer[newPolyOne] += amount
+			newPolymer[newPolyTwo] += amount
 		}
-		newPolymer = append(newPolymer, PolymerTemplate[len(PolymerTemplate)-1])
-		PolymerTemplate = string(newPolymer)
+		PolymerTemplate = newPolymer
 	}
 }
 
 func countElements() map[byte]int {
 	count := map[byte]int{}
-	for _, el := range PolymerTemplate {
-		count[byte(el)]++
+	for poly, amount := range PolymerTemplate {
+		count[poly[0]] += amount
+		count[poly[1]] += amount
+	}
+	count[StartingElement] += 1
+	count[EndingElement] += 1
+	for el, elCount := range count {
+		count[el] = elCount / 2
 	}
 	return count
 }
 
 func two() {
-	// prepareInput("input.txt")
-	// step(40)
-	// mostCommonElement := 0
-	// leastCommonElementSet := false
-	// leastCommonElement := 0
-	// for _, amount := range countElements() {
-	// 	if amount > mostCommonElement {
-	// 		mostCommonElement = amount
-	// 	}
-	// 	if amount < leastCommonElement || !leastCommonElementSet {
-	// 		leastCommonElement = amount
-	// 		leastCommonElementSet = true
-	// 	}
-	// }
-	// fmt.Printf("Two %d\n", mostCommonElement-leastCommonElement)
-	fmt.Println("Two: fkn i dunno, shits crazy")
+	prepareInput("input.txt")
+	step(40)
+	mostCommonElement := 0
+	leastCommonElementSet := false
+	leastCommonElement := 0
+	for _, amount := range countElements() {
+		if amount > mostCommonElement {
+			mostCommonElement = amount
+		}
+		if amount < leastCommonElement || !leastCommonElementSet {
+			leastCommonElement = amount
+			leastCommonElementSet = true
+		}
+	}
+	fmt.Printf("Two %d\n", mostCommonElement-leastCommonElement)
 }
