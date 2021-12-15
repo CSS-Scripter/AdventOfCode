@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"strconv"
 	"strings"
+	"time"
 )
 
 var (
@@ -24,8 +25,13 @@ func (p Position) String() string {
 }
 
 func main() {
-	// one()
+	start := time.Now()
+
+	one()
 	two()
+
+	elapsed := time.Since(start)
+	fmt.Printf("Duration: %s", elapsed)
 }
 
 func prepareInput(file string) {
@@ -38,7 +44,14 @@ func prepareInput(file string) {
 		for x, riskString := range rowString {
 			risk, _ := strconv.Atoi(string(riskString))
 			area[y][x] = risk
-			minRiskMap[y][x] = 1000000000
+			minRiskMap[y][x] = -1
+			if x > 0 {
+				minRiskMap[y][x] = minRiskMap[y][x-1] + risk
+			} else if y > 0 {
+				minRiskMap[y][x] = minRiskMap[y-1][x] + risk
+			} else {
+				minRiskMap[y][x] = risk
+			}
 		}
 	}
 	minRiskMap[0][0] = area[0][0]
@@ -47,6 +60,8 @@ func prepareInput(file string) {
 func prepareEnlargedInput(file string) {
 	input, _ := ioutil.ReadFile(file)
 	inputStrings := strings.Split(strings.TrimSpace(string(input)), "\n")
+	sectionWidth := len(inputStrings[0])
+	sectionHeight := len(inputStrings)
 	areaWidth = len(inputStrings[0]) * 5
 	areaHeight = len(inputStrings) * 5
 	initAreas()
@@ -55,49 +70,45 @@ func prepareEnlargedInput(file string) {
 			for j := 0; j < 5; j++ {
 				for x, riskString := range rowString {
 					risk, _ := strconv.Atoi(string(riskString))
-					risk = ((risk + i + j) % 9)
-					if risk == 0 {
-						risk = 1
+					risk += i + j
+					if risk >= 10 {
+						risk = risk - 9
 					}
-					area[y*(i+1)][x*(j+1)] = risk
-					minRiskMap[y*(i+1)][x*(j+1)] = 1000000000
+					totalX := x + (sectionWidth * j)
+					totalY := y + (sectionHeight * i)
+					area[totalY][totalX] = risk
+					if totalX > 0 {
+						minRiskMap[totalY][totalX] = minRiskMap[totalY][totalX-1] + risk
+					} else if totalY > 0 {
+						minRiskMap[totalY][totalX] = minRiskMap[totalY-1][totalX] + risk
+					} else {
+						minRiskMap[totalY][totalX] = risk
+					}
 				}
 			}
 		}
 	}
-	minRiskMap[0][0] = area[0][0]
 }
 
 func initAreas() {
-	area = make([][]int, areaWidth)
+	area = make([][]int, areaHeight)
 	minRiskMap = make([][]int, areaHeight)
 	for i := range area {
 		area[i] = make([]int, areaWidth)
-		minRiskMap[i] = make([]int, areaHeight)
+		minRiskMap[i] = make([]int, areaWidth)
 	}
 }
 
 func one() {
 	prepareInput("input.txt")
-	fillInMinRiskMap(0, 0)
+	fillInMinMapInverse()
 	fmt.Printf("One: %d\n", minRiskMap[areaHeight-1][areaWidth-1]-area[0][0])
 }
 
 func two() {
-	prepareEnlargedInput("example_input.txt")
-	printArea()
-}
-
-func fillInMinRiskMap(fromX, fromY int) {
-	adjecantPositions := getAdjecantPositions(fromX, fromY)
-	fromRisk := minRiskMap[fromY][fromX]
-	for _, adjecant := range adjecantPositions {
-		adjecantRisk := area[adjecant.Y][adjecant.X]
-		if (fromRisk + adjecantRisk) < minRiskMap[adjecant.Y][adjecant.X] {
-			minRiskMap[adjecant.Y][adjecant.X] = fromRisk + adjecantRisk
-			fillInMinRiskMap(adjecant.X, adjecant.Y)
-		}
-	}
+	prepareEnlargedInput("input.txt")
+	fillInMinMapInverse()
+	fmt.Printf("Two: %d\n", minRiskMap[areaHeight-1][areaWidth-1]-area[0][0])
 }
 
 func getAdjecantPositions(x, y int) []Position {
@@ -118,9 +129,9 @@ func getAdjecantPositions(x, y int) []Position {
 }
 
 func printArea() {
-	output := make([][]string, areaHeight+1)
+	output := make([][]string, areaHeight)
 	for i := range output {
-		output[i] = make([]string, areaWidth+1)
+		output[i] = make([]string, areaWidth)
 	}
 	for y, row := range area {
 		for x, risk := range row {
@@ -133,9 +144,9 @@ func printArea() {
 }
 
 func printRisk() {
-	output := make([][]string, areaHeight+1)
+	output := make([][]string, areaHeight)
 	for i := range output {
-		output[i] = make([]string, areaWidth+1)
+		output[i] = make([]string, areaWidth)
 	}
 	for y, row := range minRiskMap {
 		for x, risk := range row {
@@ -144,5 +155,23 @@ func printRisk() {
 	}
 	for _, line := range output {
 		fmt.Println(strings.Join(line, "\t"))
+	}
+}
+
+func fillInMinMapInverse() {
+	changes := 0
+
+	for y, row := range minRiskMap {
+		for x, minRisk := range row {
+			for _, ad := range getAdjecantPositions(x, y) {
+				if (minRiskMap[ad.Y][ad.X] + area[y][x]) < minRisk {
+					minRiskMap[y][x] = minRiskMap[ad.Y][ad.X] + area[y][x]
+					changes += 1
+				}
+			}
+		}
+	}
+	if changes > 0 {
+		fillInMinMapInverse()
 	}
 }
