@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-var elfes []Elf
+var elfs []Elf
 
 type Elf struct {
 	Calories  []int
@@ -26,6 +26,7 @@ func (e *Elf) CalculateTotalCalories() int {
 
 func main() {
 	prepareInput("input.txt")
+	sortElfs()
 	one()
 	two()
 }
@@ -40,24 +41,21 @@ func prepareInput(file string) {
 			elf.Calories = append(elf.Calories, calInt)
 		}
 		elf.CalculateTotalCalories()
-		elfes = append(elfes, elf)
+		elfs = append(elfs, elf)
 	}
+}
+
+func sortElfs() {
+	sort.Slice(elfs, func(i, j int) bool {
+		return elfs[i].TotalCals > elfs[j].TotalCals
+	})
 }
 
 func one() {
-	max := 0
-	for _, elf := range elfes {
-		if elf.TotalCals > max {
-			max = elf.TotalCals
-		}
-	}
-	fmt.Printf("1: %d\n", max)
+	fmt.Printf("1: %d\n", elfs[0].TotalCals)
 }
 
 func two() {
-	sort.Slice(elfes, func(i, j int) bool {
-		return elfes[i].TotalCals > elfes[j].TotalCals
-	})
-	total := elfes[0].TotalCals + elfes[1].TotalCals + elfes[2].TotalCals
+	total := elfs[0].TotalCals + elfs[1].TotalCals + elfs[2].TotalCals
 	fmt.Printf("2: %d\n", total)
 }
