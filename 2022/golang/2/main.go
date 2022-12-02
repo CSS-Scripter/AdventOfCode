@@ -20,8 +20,6 @@ const (
 	WantLose = -1
 )
 
-var loop = []int{3, 1, 2, 3, 1}
-
 var inputToAction = map[string]int{
 	"A":  Rock,
 	"B":  Paper,
@@ -34,22 +32,18 @@ var inputToAction = map[string]int{
 	"wZ": WantWin,
 }
 
+var loop = []int{3, 1, 2, 3, 1}
+var outcomeList = []int{Win, Lose, Draw, Win, Lose}
+var oneMatches []Match
+var twoMatches []Match
+
 type Match struct {
 	Opponent int
 	You      int
 }
 
-var oneMatches []Match
-var twoMatches []Match
-
 func (m *Match) CalculateScore() int {
-	if m.You == m.Opponent {
-		return Draw + m.You
-	}
-	if loop[m.You+1] == m.Opponent {
-		return Lose + m.You
-	}
-	return Win + m.You
+	return outcomeList[m.You-m.Opponent+2] + m.You
 }
 
 func main() {
@@ -66,29 +60,20 @@ func prepareInput(file string) {
 
 		// Prep input for one
 		match := Match{
-			You:      decodeAction(actions[1]),
-			Opponent: decodeAction(actions[0]),
+			You:      inputToAction[actions[1]],
+			Opponent: inputToAction[actions[0]],
 		}
 		oneMatches = append(oneMatches, match)
 
 		// Prep input for two
-		opponent := decodeAction(actions[0])
-		wantedOutcome := decodeAction("w" + actions[1])
+		opponent := inputToAction[actions[0]]
+		wantedOutcome := inputToAction["w"+actions[1]]
 		match = Match{
-			You:      reverseAction(opponent, wantedOutcome),
+			You:      loop[opponent+wantedOutcome],
 			Opponent: opponent,
 		}
 		twoMatches = append(twoMatches, match)
 	}
-}
-
-func decodeAction(action string) int {
-	return inputToAction[action]
-}
-
-func reverseAction(action int, want int) int {
-	yourAction := loop[action+want]
-	return yourAction
 }
 
 func printScoreOfMatches(matches []Match) {
