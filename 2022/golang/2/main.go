@@ -14,45 +14,51 @@ const (
 	Lose = 0
 	Draw = 3
 	Win  = 6
+
+	WantWin  = 1
+	WantDraw = 0
+	WantLose = -1
 )
+
+var loop = []int{3, 1, 2, 3, 1}
+
+var inputToAction = map[string]int{
+	"A":  Rock,
+	"B":  Paper,
+	"C":  Scissors,
+	"X":  Rock,
+	"Y":  Paper,
+	"Z":  Scissors,
+	"wX": WantLose,
+	"wY": WantDraw,
+	"wZ": WantWin,
+}
 
 type Match struct {
 	Opponent int
 	You      int
 }
 
-var matches []Match
+var oneMatches []Match
+var twoMatches []Match
 
 func (m *Match) CalculateScore() int {
-	switch true {
-	case
-		(m.You == Rock && m.Opponent == Rock),
-		(m.You == Paper && m.Opponent == Paper),
-		(m.You == Scissors && m.Opponent == Scissors):
+	if m.You == m.Opponent {
 		return Draw + m.You
-	case
-		(m.You == Rock && m.Opponent == Paper),
-		(m.You == Paper && m.Opponent == Scissors),
-		(m.You == Scissors && m.Opponent == Rock):
-		return Lose + m.You
-	case
-		(m.You == Rock && m.Opponent == Scissors),
-		(m.You == Paper && m.Opponent == Rock),
-		(m.You == Scissors && m.Opponent == Paper):
-		return Win + m.You
 	}
-	panic("uncaught combination")
+	if loop[m.You+1] == m.Opponent {
+		return Lose + m.You
+	}
+	return Win + m.You
 }
 
 func main() {
 	prepareInput("input.txt")
-	one()
-	matches = []Match{}
-	prepareInputTwo("input.txt")
-	one()
+	printScoreOfMatches(oneMatches)
+	printScoreOfMatches(twoMatches)
 }
 
-func one() {
+func printScoreOfMatches(matches []Match) {
 	var totalScore int
 	for _, match := range matches {
 		totalScore += match.CalculateScore()
@@ -64,67 +70,31 @@ func prepareInput(file string) {
 	input, _ := ioutil.ReadFile(file)
 	lines := strings.Split(strings.TrimSpace(string(input)), "\n")
 	for _, line := range lines {
-		actions := strings.Split(line, " ")
-		opponent := actions[0]
-		you := actions[1]
+		actions := strings.Fields(line)
+
+		// Prep input for one
 		match := Match{
-			You:      decodeAction(you),
-			Opponent: decodeAction(opponent),
+			You:      decodeAction(actions[1]),
+			Opponent: decodeAction(actions[0]),
 		}
-		matches = append(matches, match)
+		oneMatches = append(oneMatches, match)
+
+		// Prep input for two
+		opponent := decodeAction(actions[0])
+		wantedOutcome := decodeAction("w" + actions[1])
+		match = Match{
+			You:      reverseAction(opponent, wantedOutcome),
+			Opponent: opponent,
+		}
+		twoMatches = append(twoMatches, match)
 	}
 }
 
 func decodeAction(action string) int {
-	switch action {
-	case "A", "X":
-		return Rock
-	case "B", "Y":
-		return Paper
-	case "C", "Z":
-		return Scissors
-	default:
-		panic("Unknown action: " + action)
-	}
+	return inputToAction[action]
 }
 
-func prepareInputTwo(file string) {
-	input, _ := ioutil.ReadFile(file)
-	lines := strings.Split(strings.TrimSpace(string(input)), "\n")
-	for _, line := range lines {
-		actions := strings.Split(line, " ")
-		opponent := actions[0]
-		action := actions[1]
-		youAction, opponentAction := decodeActionTwo(action, opponent)
-		match := Match{
-			You:      youAction,
-			Opponent: opponentAction,
-		}
-		matches = append(matches, match)
-	}
-}
-
-func decodeActionTwo(action string, opponent string) (int, int) {
-	switch opponent + action {
-	case "AX":
-		return Scissors, Rock
-	case "BX":
-		return Rock, Paper
-	case "CX":
-		return Paper, Scissors
-	case "AY":
-		return Rock, Rock
-	case "BY":
-		return Paper, Paper
-	case "CY":
-		return Scissors, Scissors
-	case "AZ":
-		return Paper, Rock
-	case "BZ":
-		return Scissors, Paper
-	case "CZ":
-		return Rock, Scissors
-	default:
-		panic("unknown combination")
-	}
+func reverseAction(action int, want int) int {
+	yourAction := loop[action+want]
+	return yourAction
 }
