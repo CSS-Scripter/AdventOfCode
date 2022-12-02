@@ -58,14 +58,6 @@ func main() {
 	printScoreOfMatches(twoMatches)
 }
 
-func printScoreOfMatches(matches []Match) {
-	var totalScore int
-	for _, match := range matches {
-		totalScore += match.CalculateScore()
-	}
-	fmt.Println(totalScore)
-}
-
 func prepareInput(file string) {
 	input, _ := ioutil.ReadFile(file)
 	lines := strings.Split(strings.TrimSpace(string(input)), "\n")
@@ -97,4 +89,12 @@ func decodeAction(action string) int {
 func reverseAction(action int, want int) int {
 	yourAction := loop[action+want]
 	return yourAction
+}
+
+func printScoreOfMatches(matches []Match) {
+	var totalScore int
+	for _, match := range matches {
+		totalScore += match.CalculateScore()
+	}
+	fmt.Println(totalScore)
 }
