@@ -19,9 +19,12 @@ defmodule Day3 do
 
     pocket1
     |> String.to_charlist
-    |> Enum.filter(fn c -> pocket2 =~ to_string([c]) end)
     |> List.first
     |> getScoreForCharacter
+  end
+
+  def getDuplicates(l, s) do
+    Enum.filter(l, fn c -> s =~ to_string([c]) end)
   end
 
   def getScoreForCharacter(character) do
@@ -34,16 +37,18 @@ defmodule Day3 do
     file
     |> readFile
     |> Enum.chunk_every(3)
-    |> Enum.map(fn [sack1, sack2, sack3] ->
-      sack1
-      |> String.to_charlist
-      |> Enum.filter(fn c -> sack2 =~ to_string([c]) end)
-      |> Enum.filter(fn c -> sack3 =~ to_string([c]) end)
-      |> List.first
-      |> getScoreForCharacter
-    end)
+    |> Enum.map(&getScoreForThreeSacks/1)
     |> Enum.sum
     |> prefixOutput("Two: ")
+  end
+
+  def getScoreForThreeSacks([sack1, sack2, sack3]) do
+    sack1
+    |> String.to_charlist
+    |> getDuplicates(sack2)
+    |> getDuplicates(sack3)
+    |> List.first
+    |> getScoreForCharacter
   end
 
   def readFile(file) do
