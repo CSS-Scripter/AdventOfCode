@@ -24,3 +24,5 @@ day_4-*.tar
 
 # Temporary files, for example, from tests.
 /tmp/
+
+day_4
