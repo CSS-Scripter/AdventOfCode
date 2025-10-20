@@ -1,1 +1,0 @@
-/mnt/data/AdventOfCode/2024/rust/target/debug/aoc2024: /mnt/data/AdventOfCode/2024/rust/src/days/d01.rs /mnt/data/AdventOfCode/2024/rust/src/days/mod.rs /mnt/data/AdventOfCode/2024/rust/src/main.rs /mnt/data/AdventOfCode/2024/rust/src/utils/inputs.rs /mnt/data/AdventOfCode/2024/rust/src/utils/mod.rs
