@@ -11,7 +11,7 @@ run:
 		-std=c++23 \
 		-Werror \
 		-Wshadow=global \
-		./src/**.cpp ./src/*/**.cpp\
+		./**.cpp ./*/**.cpp\
 		-o ./main
 
 	clear && ./main
